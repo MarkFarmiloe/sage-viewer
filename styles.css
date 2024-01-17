@@ -35,19 +35,73 @@
     color: inherit;
 }
 
-.nav span {
-    padding-right: 10px;
-    color:bisque;
+.nav li:hover {
+    background-color: #00C000;
 }
 
+.nav span {
+    padding-right: 10px;
+    color: bisque;
+}
 
+.nav li ul {
+    background-color: #00A000;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}
 
+.nav li ul li {
+    border: none;
+    width: 100%;
+}
 
 /* footer */
-footer  {
+footer {
     height: 30px;
     color: darkblue;
     background-color: lightgreen;
-    display:flex;
+    display: flex;
     align-items: center;
+}
+
+
+/* MDN minimal-table styling */
+
+table {
+    border-collapse: collapse;
+    border: 2px solid rgb(200, 200, 200);
+    letter-spacing: 1px;
+    font-size: 0.8rem;
+    width: 100%;
+}
+
+td,
+th {
+    border: 1px solid rgb(190, 190, 190);
+    padding: 10px 20px;
+}
+
+th {
+    background-color: rgb(235, 235, 235);
+}
+
+td {
+    text-align: center;
+}
+
+tr:nth-child(3n) td {
+    background-color: rgb(200, 20, 250);
+}
+
+tr:nth-child(3n+1) td {
+    background-color: rgb(200, 250, 200);
+}
+
+tr:nth-child(3n+2) td {
+    background-color: rgb(250, 200, 200);
+}
+
+caption {
+    padding: 10px;
 }

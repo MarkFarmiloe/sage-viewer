@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Viewer - Sage</title>
     <link href="/styles.css" rel="stylesheet" />
+    <script defer src="main.js"></script>
 </head>
 <body>
     <nav class="nav">
         <ul>
-            <li>Dashboard</li>
-            <li>Sales</li>
+            <li><a href="/">Dashboard</a></li>
+            <li style="position: relative;"><a href="/Sales">Sales</a>
+                <ul style="position: absolute; top:30px; left:0px; width:180px;border: 1px solid red;">
+                    <li><a href="/Sales">All Sales</a></li>
+                    <li><a href="/Sales?q=ossalesinvs">Outstanding Invoices</a></li>
+                </ul>
+            </li>
             <li><a href="">Purchases</a></li>
             <li>Banking</li>
             <li>Nominals</li>
@@ -18,13 +24,10 @@
         <span>CCS Construction Ltd</span>
     </nav>
     <section>
-
+        Side bar for shortcuts perhaps
     </section>
-    <header>
-        Welcome
-    </header>
     <main>
-
+        Main area - usually data grids etc.
     </main>
     <footer>
         <li>&copy;Churchill Computer Solutions Ltd 2024</li>
