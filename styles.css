@@ -5,12 +5,22 @@
     list-style-type: none;
 }
 
+body {
+    display: grid;
+    grid-template-areas: 
+        "nav     nav"
+        "sidebar main" 
+        "footer  footer";
+    grid-template-columns: 240px 1fr;
+}
+
 /* nav bar */
 nav {
     background-color: green;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    grid-area: nav;
 }
 
 nav ul {
@@ -84,8 +94,15 @@ footer {
     background-color: lightgreen;
     display: flex;
     align-items: center;
+    grid-area: footer;
 }
 
+/* Sidebar */
+#shortcuts {
+    grid-area: sidebar;
+    height: 100px;
+    border: 1px solid black;
+}
 
 /* MDN minimal-table styling */
 
