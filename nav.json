@@ -1,0 +1,39 @@
+[
+    {
+        "text": "Dashboard",
+        "href": "/"
+    },
+    {
+        "text": "Sales",
+        "href": "/Sales",
+        "children": [
+            {
+                "text": "All Sales",
+                "href": "/Sales"
+            },
+            {
+                "text": "Outstanding invoices",
+                "href": "/Sales?q=ossalesinvs",
+                "children": [
+                    { "text": "sub-sub-menu-item", "href": "/Customers" }
+                ]
+            },
+            {
+                "text": "Recent Sales",
+                "href": "/Sales?q=recentsales"
+            }
+        ]
+    },
+    {
+        "text": "Purchases",
+        "href": "/Purchases"
+    },
+    {
+        "text": "Banking",
+        "href": "/Banking"
+    },
+    {
+        "text": "Nominals",
+        "href": "/Nominals"
+    }
+]
