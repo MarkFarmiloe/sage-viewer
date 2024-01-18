@@ -34,7 +34,79 @@ const loadNav = data => {
     });
     const fc = n.firstChild;
     n.insertBefore(ul, fc);
-} 
+}
+
+const toggleSort = (e) => {
+    const th = e.target;
+    console.log(th);
+    const xs = th.attributes['x-sort']?.value 
+    console.log(xs);
+    th.setAttribute('x-sort', (xs === "asc") ? "desc" : "asc");
+}
+
+const buildTHead = fldInfos => {
+    const thead = document.createElement("thead");
+    const tr = document.createElement("tr");
+    fldInfos.forEach(fldInfo => { // <th scope="col">Band</th>
+        const th = document.createElement("th");
+        th.setAttribute("scope", "col");
+        th.innerText = fldInfo.Name;
+        tr.appendChild(th);
+        th.addEventListener("click", toggleSort);
+    })
+    thead.appendChild(tr);
+    return thead;
+}
+
+const dateToString = v => {
+    const d = new Date(0,0,v);
+    return d.toLocaleDateString();
+}
+
+const buildTBody = (fldInfos, dataRows) => {
+    const tbody = document.createElement("tbody");
+    dataRows.forEach(row => {
+        const tr = document.createElement("tr");
+        let i = 0;
+        fldInfos.forEach(fldInfo => { // <th scope="col">Band</th>
+            const v = row[i];
+            const td = document.createElement("td");
+            switch (fldInfo.DataType) {
+                case "String":
+                    td.innerText = v;
+                    break;
+                case "Int":
+                    td.innerText = v.toString();
+                    td.classList.add("n0");
+                    break;
+                case "Money":
+                    td.innerText = v.toFixed(2);
+                    td.classList.add("n2");
+                    break;
+                case "Date":
+                    td.innerText = dateToString(v);
+                    td.classList.add("date");
+                    break;
+                default:
+                    break;
+            }
+            tr.appendChild(td);
+            i++;
+        })
+        tbody.appendChild(tr);
+    })
+    return tbody;
+}
+
+const loadGrid = data => {
+    console.log(data[0]);
+    console.log(data[1][0]);
+    const t = document.getElementById("data");
+    const thead = buildTHead(data[0]);
+    t.appendChild(thead);
+    const tbody = buildTBody(data[0], data[1]);
+    t.appendChild(tbody);
+}
 
 const myRequest = new Request("nav.json");
 
@@ -49,15 +121,15 @@ fetch(myRequest)
         loadNav(data);
     });
 
-// onload = (e) => {
-//     const t = document.getElementsByTagName("table")[0];
-//     for (const child of t.children) {
-//         if (child.tagName === 'THEAD') {
-//             const tr = child.children[0]
-//             for (const col of tr.children) {
-//                 col.addEventListener("click", toggleSort);
-//             }
-//             break;
-//         }
-//     }
-// }
+const dataRequest = new Request("Customers.json");
+
+fetch(dataRequest)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        loadGrid(data);
+    });
