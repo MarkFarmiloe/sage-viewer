@@ -34,20 +34,20 @@ const loadNav = data => {
 }
 
 // Load grid
-const toggleSort = (e) => {
-    const th = e.target;
-    console.log(th);
-    const xs = th.attributes['x-sort']?.value
-    console.log(xs);
-    th.setAttribute('x-sort', (xs === "asc") ? "desc" : "asc");
-}
-
-const buildTHead = (fldInfos, layout) => {
+const buildTHead = () => {
+    const toggleSort = (e) => {
+        const th = e.target;
+        console.log(th);
+        const xs = th.attributes['x-sort']?.value
+        console.log(xs);
+        th.setAttribute('x-sort', (xs === "asc") ? "desc" : "asc");
+    }
+    const data = dataStore[dataConfig.key];
     const thead = document.getElementById("thead");
     thead.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
     const tr = document.createElement("tr");
-    layout.forEach(fld => {
-        fi = fldInfos.find(item => item.Name === fld.Name);
+    data.layout.forEach(fld => {
+        fi = data.fields.find(item => item.Name === fld.Name);
         const th = document.createElement("th");
         th.setAttribute("scope", "col");
         th.innerText = fi.text;
@@ -58,48 +58,22 @@ const buildTHead = (fldInfos, layout) => {
     return;
 }
 
-const dateToString = v => {
-    const d = new Date(0, 0, v - 1);
-    return d.toLocaleDateString();
-}
-
-const layoutCmpFn = (fldInfos, layout) => {
-    const sorts = [], asc = [];
-    layout.forEach(item => {
-        if (item.Sort) {
-            const num = Math.abs(item.Sort) - 1;
-            const asc = Math.sign(item.Sort) === 1;
-            const fi = fldInfos.find(fi => fi.Name === item.Name);
-            const i = fldInfos.findIndex(fi => fi.Name === item.Name);
-            sorts[num] = [i, fi, asc];
-        }
-    });
-    const cmpFn = (a, b) => {
-        for (let i = 0; i < sorts.length; i++) {
-            const [pos, _, asc] = sorts[i];
-            if (a[pos] < b[pos]) {
-                return asc ? -1 : 1;
-            }
-            if (a[pos] > b[pos]) {
-                return asc ? 1 : -1;
-            }
-        }
-        return 0;
-    };
-    return cmpFn;
-}
-
-const buildTBody = (fldInfos, dataRows, layout) => {
-    const idx = quickIndex(dataRows, layoutCmpFn(fldInfos, layout));
+const buildTBody = () => {
+    const dateToString = v => {
+        const d = new Date(0, 0, v - 1);
+        return d.toLocaleDateString();
+    }
+    const data = dataStore[dataConfig.key];
+    const idx = dataConfig.currentIdx;
     const tbody = document.getElementById("tbody");
     tbody.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
-    const showRows = sublistByIdx(dataRows, idx);
+    const showRows = sublistByIdx(data.rows, idx, dataConfig.pageSize, (dataConfig.pageNo - 1) * dataConfig.pageSize);
     showRows.forEach(row => {
         const tr = document.createElement("tr");
         let i = 0;
-        layout.forEach(fld => {
-            fi = fldInfos.find(item => item.Name === fld.Name);
-            i = fldInfos.findIndex(item => item.Name === fld.Name);
+        data.layout.forEach(fld => {
+            fi = data.fields.find(item => item.Name === fld.Name);
+            i = data.fields.findIndex(item => item.Name === fld.Name);
             const v = row[i];
             const td = document.createElement("td");
             switch (fi.DataType) {
@@ -129,11 +103,70 @@ const buildTBody = (fldInfos, dataRows, layout) => {
     return;
 }
 
-const loadGrid = key => {
-    data = dataStore[key];
+const buildTFoot = () => {
+    const selectPage = (e) => {
+        const pageNo = parseInt(e.target.innerText);
+        if (!isNaN(pageNo)) {
+            dataConfig.pageNo = pageNo;
+            buildTBody();
+            buildTFoot();
+        }
+    }
+    const data = dataStore[dataConfig.key];
+    const tfoot = document.getElementById("tfoot");
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = data.fields.length; 
+    const ul = document.createElement("ul");
+    let firstPageNo = Math.max(1, dataConfig.pageNo - 4);
+    const lastPageNo = Math.min(firstPageNo + 8, dataConfig.noOfPages);
+    if (lastPageNo === dataConfig.noOfPages) {
+        firstPageNo = lastPageNo - 8;
+    }
+    if (firstPageNo > 1) {
+        const li = document.createElement("li");
+        li.innerText = 1;
+        li.addEventListener("click", selectPage);
+        ul.appendChild(li);
+        if (firstPageNo > 2) {
+            const li = document.createElement("li");
+            li.classList.add("elipsis");
+            li.innerText = "...";
+            ul.appendChild(li);
+        }
+    }
+    for (let i = firstPageNo; i <= lastPageNo; i++) {
+        const li = document.createElement("li");
+        li.innerText = i;
+        if (i === dataConfig.pageNo) { li.classList.add("selected") };
+        li.addEventListener("click", selectPage);
+        ul.appendChild(li);
+    }
+    if (dataConfig.noOfPages > lastPageNo) {
+        if (dataConfig.noOfPages > lastPageNo + 1) {
+            const li = document.createElement("li");
+            li.classList.add("elipsis");
+            li.innerText = "...";
+            ul.appendChild(li);
+        }
+        const li = document.createElement("li");
+        li.innerText = dataConfig.noOfPages;
+        li.addEventListener("click", selectPage);
+        ul.appendChild(li);
+    }
+    td.appendChild(ul);
+    tr.appendChild(td);
+    tfoot.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
+    tfoot.appendChild(tr);
+    return;
+}
+
+const loadGrid = () => {
+    data = dataStore[dataConfig.key];
     const t = document.getElementById("data");
     buildTHead(data.fields, data.layout);
-    buildTBody(data.fields, data.rows, data.layout);
+    buildTBody();
+    buildTFoot();
 }
 
 const sublistByIdx = (arr, idx, count = 25, start = 0) => {
@@ -159,33 +192,6 @@ const sublistByIdx = (arr, idx, count = 25, start = 0) => {
     return sublist;
 }
 
-
-// Fetch data
-fetch(new Request("nav.json"))
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        loadNav(data);
-    });
-
-const dataStore = {};
-
-const fetchToDataStore = async (key, path, loadToGrid) => {
-    const response = await fetch(path);
-    const data = await response.json();
-    dataStore[key] = data;
-    if (loadToGrid) loadGrid(key);
-}
-
-fetchToDataStore("Customers", "Customers.json", true);
-// fetchToDataStore("Suppliers", "Suppliers.json", false);
-
-// setTimeout(() => loadGrid("Suppliers"), 5000);
-
 const quickIndex = (array, cmpfn = (a, b) => a < b ? -1 : 1) => {
     const qsi = index => {
         if (index.length <= 1) { return index };
@@ -207,40 +213,68 @@ const quickIndex = (array, cmpfn = (a, b) => a < b ? -1 : 1) => {
     return qsi(index);
 }
 
-// console.log(quickIndex([4, 7, 5, 3, 2]));
-// const objList = [
-//     { name: "John", age: 42 },
-//     { name: "Mark", age: 43 },
-//     { name: "John", age: 44 },
-//     { name: "Keith", age: 45 },
-//     { name: "Mark", age: 46 },
-//     { name: "John", age: 41 }
-// ];
-// const objIdx = quickIndex(objList, (a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
-// for (let i = 0; i < objIdx.length; i++) {
-//     console.log(i, objIdx[i], objList[objIdx[i]]);
-// }
+// Fetch data
+const dataStore = {};
+const dataConfig = {
+    key: "",
+    currentIdx: null,
+    pageNo: 0,
+    pageSize: 25,
+    noOfPages: 0
+};
 
-const listByIdx = (arr, idx, count = 20, start = 0, pos = 0) => {
-    for (let i = 0; i < idx.length; i++) {
-        const keys = idx[i];
-        if (Array.isArray(keys)) {
-            if (pos + keys.length <= start) {
-                pos += keys.length;
-            } else {
-                pos = listByIdx(arr, keys, count, start, pos);
+const layoutCmpFn = (fldInfos, layout) => {
+    const sorts = [], asc = [];
+    layout.forEach(item => {
+        if (item.Sort) {
+            const num = Math.abs(item.Sort) - 1;
+            const asc = Math.sign(item.Sort) === 1;
+            const fi = fldInfos.find(fi => fi.Name === item.Name);
+            const i = fldInfos.findIndex(fi => fi.Name === item.Name);
+            sorts[num] = [i, fi, asc];
+        }
+    });
+    const cmpFn = (a, b) => {
+        for (let i = 0; i < sorts.length; i++) {
+            const [pos, _, asc] = sorts[i];
+            if (a[pos] < b[pos]) {
+                return asc ? -1 : 1;
             }
-        } else {
-            if (pos >= start + count) break;
-            if (pos >= start) console.log(arr[keys]);
-            pos++;
-        };
-    }
-    return pos;
+            if (a[pos] > b[pos]) {
+                return asc ? 1 : -1;
+            }
+        }
+        return 0;
+    };
+    return cmpFn;
 }
 
-// listByIdx(objList, objIdx);
-// console.log("x");
-// listByIdx(objList, objIdx, 3, 1);
-// console.log("x");
-// listByIdx(objList, objIdx, 2, 3);
+const fetchToDataStore = async (key, path, loadToGrid) => {
+    const response = await fetch(path);
+    const data = await response.json();
+    dataStore[key] = data;
+    if (loadToGrid) {
+        dataConfig.key = key;
+        dataConfig.pageNo = 1;
+        dataConfig.pageSize = 25;
+        dataConfig.noOfPages = 1 + Math.round((data.rows.length - 1) / dataConfig.pageSize);
+        dataConfig.currentIdx = quickIndex(data.rows, layoutCmpFn(data.fields, data.layout))
+        loadGrid();
+    }
+}
+
+fetch(new Request("nav.json"))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        loadNav(data);
+    });
+
+fetchToDataStore("Customers", "Customers.json", true);
+// fetchToDataStore("Suppliers", "Suppliers.json", false);
+
+// setTimeout(() => loadGrid("Suppliers"), 5000);
