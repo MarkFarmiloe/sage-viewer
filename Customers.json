@@ -1,31 +1,31 @@
-[
-  [
-    { "Name": "ACCOUNT_REF", "DataType": "String"},
-    { "Name": "NAME", "DataType": "String"},
-    { "Name": "ADDRESS_1", "DataType": "String"},
-    { "Name": "ADDRESS_2", "DataType": "String"},
-    { "Name": "ADDRESS_3", "DataType": "String"},
-    { "Name": "ADDRESS_4", "DataType": "String"},
-    { "Name": "ADDRESS_5", "DataType": "String"},
-    { "Name": "CONTACT_NAME", "DataType": "String"},
-    { "Name": "TELEPHONE", "DataType": "String"},
-    { "Name": "TELEPHONE_2", "DataType": "String"},
-    { "Name": "E_MAIL", "DataType": "String"},
-    { "Name": "E_MAIL2", "DataType": "String"},
-    { "Name": "DEF_NOM_CODE", "DataType": "String"},
-    { "Name": "DEPT_NUMBER", "DataType": "Int"},
-    { "Name": "DEF_TAX_CODE", "DataType": "Int"},
-    { "Name": "FIRST_INVOICE", "DataType": "Date"},
-    { "Name": "LAST_INV_DATE", "DataType": "Date"},
-    { "Name": "LAST_PAY_DATE", "DataType": "Date"},
-    { "Name": "BALANCE", "DataType": "Money"},
-    { "Name": "TURNOVER_YTD", "DataType": "Money"},
-    { "Name": "PRIOR_YEAR", "DataType": "Money"},
-    { "Name": "NO_OF_HEADER", "DataType": "Int"},
-    { "Name": "FIRST_HEADER", "DataType": "Int"},
-    { "Name": "LAST_HEADER", "DataType": "Int"}
+{
+  "fields": [
+    { "Name": "ACCOUNT_REF", "DataType": "String", "text": "A/c Ref"},
+    { "Name": "NAME", "DataType": "String", "text": "Name"},
+    { "Name": "ADDRESS_1", "DataType": "String", "text": "Address"},
+    { "Name": "ADDRESS_2", "DataType": "String", "text": "Address 2"},
+    { "Name": "ADDRESS_3", "DataType": "String", "text": "Address 3"},
+    { "Name": "ADDRESS_4", "DataType": "String", "text": "Address 4"},
+    { "Name": "ADDRESS_5", "DataType": "String", "text": "Address 5"},
+    { "Name": "CONTACT_NAME", "DataType": "String", "text": "Contact"},
+    { "Name": "TELEPHONE", "DataType": "String", "text": "Tel"},
+    { "Name": "TELEPHONE_2", "DataType": "String", "text": "Tel 2"},
+    { "Name": "E_MAIL", "DataType": "String", "text": "Email"},
+    { "Name": "E_MAIL2", "DataType": "String", "text": "Email 2"},
+    { "Name": "DEF_NOM_CODE", "DataType": "String", "text": "Def Nominal"},
+    { "Name": "DEPT_NUMBER", "DataType": "Int", "text": "Def Dept"},
+    { "Name": "DEF_TAX_CODE", "DataType": "Int", "text": "Def Vat Code"},
+    { "Name": "FIRST_INVOICE", "DataType": "Date", "text": "First invoiced"},
+    { "Name": "LAST_INV_DATE", "DataType": "Date", "text": "Last invoiced"},
+    { "Name": "LAST_PAY_DATE", "DataType": "Date", "text": "Last paid"},
+    { "Name": "BALANCE", "DataType": "Money", "text": "Balance"},
+    { "Name": "TURNOVER_YTD", "DataType": "Money", "text": "Turnover"},
+    { "Name": "PRIOR_YEAR", "DataType": "Money", "text": "T/O last year"},
+    { "Name": "NO_OF_HEADER", "DataType": "Int", "text": "No of Trans"},
+    { "Name": "FIRST_HEADER", "DataType": "Int", "text": "First Trans"},
+    { "Name": "LAST_HEADER", "DataType": "Int", "text": "Last Trans"}
   ],
-  [
+  "rows": [
     [ "ABS001", "ABS Marine & Engineering", "Unit 32, Treloggan Trade Park", "", "Newquay", "", "TR7 2QL", "", "", "", "", "", "4013", 20, 2, 44525, 44902, 44929, 0.00, 0.00, 100.00, 4, 49863, 67479 ],
     [ "ADA001", "Ella Adams", "10 Warrington Close", "Greenlands", "Redditch", "", "B97 5AZ", "", "", "", "", "", "4021", 13, 2, 44286, 45260, 45290, 0.00, 35.50, 0.00, 5, 42160, 83926 ],
     [ "ADA002", "James Adams", "48 Station Road", "", "Hagley", "", "DY9 0NU", "", "", "", "", "", "4021", 13, 2, 44469, 44500, 44594, 0.00, 0.00, 0.00, 6, 48459, 53147 ],
@@ -914,7 +914,7 @@
     [ "PAG001", "Judy Page", "7 Hartlebury Close", "Churchill North", "", "RedditchB98 9LY", "", "", "", "", "", "", "4021", 13, 2, 45046, 45260, 45287, 29.75, 327.25, 0.00, 17, 72307, 84053 ],
     [ "WAL007", "Alan Walters", "8 Cavendish Close", "", "Bromsgrove", "", "B60 1EE", "", "", "", "", "", "4021", 13, 2, 45046, 45077, 45055, 55.00, 110.00, 0.00, 4, 72444, 74647 ],
     [ "LEW004", "Barbara Lewis", "10 Hazelton Road", "Marlbrook", "Bromsgrove", "", "B61 0JE", "", "", "", "", "", "4021", 13, 2, 45077, 45260, 45260, 102.00, 622.00, 0.00, 31, 74594, 83552 ],
-    [ "MOL002", " David Ellaway - Cheryl Moles", "16 Sion Gardens", "", "Stourport", "", "DY13 8BH", "", "", "", "", "", "4021", 13, 2, 45046, 45138, 45167, 61.00, 272.00, 61.00, 28, 72268, 78158 ],
+    [ "MOL002", "David Ellaway - Cheryl Moles", "16 Sion Gardens", "", "Stourport", "", "DY13 8BH", "", "", "", "", "", "4021", 13, 2, 45046, 45138, 45167, 61.00, 272.00, 61.00, 28, 72268, 78158 ],
     [ "SIM004", "Gillian Simkin", "", "", "", "", "", "", "", "", "", "", "4021", 13, 2, 45077, 45260, 45290, 0.00, 349.50, 0.00, 28, 74843, 84022 ],
     [ "ING002", "Marion Inglis", "1 Partridge Grove", "", "Kidderminster", "", "DY10 4HH", "", "", "", "", "", "4021", 13, 2, 45107, 45260, 45290, 0.00, 1582.50, 0.00, 54, 76177, 83965 ],
     [ "HUN004", "Marlene Hunt", "116 Cedar Road", "", "Redditch", "", "B97 6HN", "", "", "", "", "", "4021", 13, 2, 45046, 45260, 45290, 0.00, 367.00, 0.00, 27, 73215, 83964 ],
@@ -988,5 +988,15 @@
     [ "GOR001", "Eileen Gordon", "5 Old Birmingham Road", "", "Bromsgrove", "", "B60 1DD", "", "", "", "", "", "4021", 13, 2, 45260, 45260, 45281, 0.00, 17.00, 0.00, 2, 83419, 84116 ],
     [ "FIS001", "C Fisher", "", "", "", "", "", "", "", "", "", "", "4021", 13, 2, -1, -1, -1, 0.00, 0.00, 0.00, 0, 0, 0 ],
     [ "HOL002", "David Holmes", "12 Kingham Close", "", "Redditch", "", "B98 0SA", "", "", "", "", "", "4021", 13, 2, -1, -1, -1, 0.00, 0.00, 0.00, 0, 0, 0 ]
+  ],
+  "layout": [
+    { "Name": "ACCOUNT_REF", "Sort": 2 },
+    { "Name": "NAME", "Sort": 1 },
+    { "Name": "CONTACT_NAME" },
+    { "Name": "TELEPHONE" },
+    { "Name": "E_MAIL" },
+    { "Name": "BALANCE" },
+    { "Name": "TURNOVER_YTD" },
+    { "Name": "PRIOR_YEAR" }
   ]
-]
+}
