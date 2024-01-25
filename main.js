@@ -42,25 +42,20 @@ const toggleSort = (e) => {
     th.setAttribute('x-sort', (xs === "asc") ? "desc" : "asc");
 }
 
-const emptyTable = t => {
-    // do we need to remove the eventlisteners first?
-    while (t.firstChild) {
-        t.firstChild.remove();
-    }
-}
-
-const buildTHead = fldInfos => {
-    const thead = document.createElement("thead");
+const buildTHead = (fldInfos, layout) => {
+    const thead = document.getElementById("thead");
+    thead.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
     const tr = document.createElement("tr");
-    fldInfos.forEach(fldInfo => { // <th scope="col">Band</th>
+    layout.forEach(fld => {
+        fi = fldInfos.find(item => item.Name === fld.Name);
         const th = document.createElement("th");
         th.setAttribute("scope", "col");
-        th.innerText = fldInfo.Name;
+        th.innerText = fi.text;
         tr.appendChild(th);
         th.addEventListener("click", toggleSort);
     })
     thead.appendChild(tr);
-    return thead;
+    return;
 }
 
 const dateToString = v => {
@@ -68,15 +63,46 @@ const dateToString = v => {
     return d.toLocaleDateString();
 }
 
-const buildTBody = (fldInfos, dataRows) => {
-    const tbody = document.createElement("tbody");
-    dataRows.forEach(row => {
+const layoutCmpFn = (fldInfos, layout) => {
+    const sorts = [], asc = [];
+    layout.forEach(item => {
+        if (item.Sort) {
+            const num = Math.abs(item.Sort) - 1;
+            const asc = Math.sign(item.Sort) === 1;
+            const fi = fldInfos.find(fi => fi.Name === item.Name);
+            const i = fldInfos.findIndex(fi => fi.Name === item.Name);
+            sorts[num] = [i, fi, asc];
+        }
+    });
+    const cmpFn = (a, b) => {
+        for (let i = 0; i < sorts.length; i++) {
+            const [pos, _, asc] = sorts[i];
+            if (a[pos] < b[pos]) {
+                return asc ? -1 : 1;
+            }
+            if (a[pos] > b[pos]) {
+                return asc ? 1 : -1;
+            }
+        }
+        return 0;
+    };
+    return cmpFn;
+}
+
+const buildTBody = (fldInfos, dataRows, layout) => {
+    const idx = quickIndex(dataRows, layoutCmpFn(fldInfos, layout));
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
+    const showRows = sublistByIdx(dataRows, idx);
+    showRows.forEach(row => {
         const tr = document.createElement("tr");
         let i = 0;
-        fldInfos.forEach(fldInfo => { // <th scope="col">Band</th>
+        layout.forEach(fld => {
+            fi = fldInfos.find(item => item.Name === fld.Name);
+            i = fldInfos.findIndex(item => item.Name === fld.Name);
             const v = row[i];
             const td = document.createElement("td");
-            switch (fldInfo.DataType) {
+            switch (fi.DataType) {
                 case "String":
                     td.innerText = v;
                     break;
@@ -96,24 +122,43 @@ const buildTBody = (fldInfos, dataRows) => {
                     break;
             }
             tr.appendChild(td);
-            i++;
+            // i++;
         })
         tbody.appendChild(tr);
     })
-    return tbody;
+    return;
 }
 
 const loadGrid = key => {
     data = dataStore[key];
-    // console.log(data[0]);
-    // console.log(data[1][0]);
     const t = document.getElementById("data");
-    emptyTable(t);
-    const thead = buildTHead(data[0]);
-    t.appendChild(thead);
-    const tbody = buildTBody(data[0], data[1]);
-    t.appendChild(tbody);
+    buildTHead(data.fields, data.layout);
+    buildTBody(data.fields, data.rows, data.layout);
 }
+
+const sublistByIdx = (arr, idx, count = 25, start = 0) => {
+    const sublist = [];
+    const populate = (keys, pos) => {
+        for (let i = 0; i < idx.length; i++) {
+            const keys = idx[i];
+            if (Array.isArray(keys)) {
+                if (pos + keys.length <= start) {
+                    pos += keys.length;
+                } else {
+                    pos = populate(keys, pos);
+                }
+            } else {
+                if (pos >= start + count) break;
+                if (pos >= start) sublist.push(arr[keys]);
+                pos++;
+            };
+        }
+        return pos;
+    }
+    populate(idx, 0);
+    return sublist;
+}
+
 
 // Fetch data
 fetch(new Request("nav.json"))
@@ -132,24 +177,70 @@ const dataStore = {};
 const fetchToDataStore = async (key, path, loadToGrid) => {
     const response = await fetch(path);
     const data = await response.json();
-    dataStore[key] = data; 
+    dataStore[key] = data;
     if (loadToGrid) loadGrid(key);
-}  
+}
 
 fetchToDataStore("Customers", "Customers.json", true);
-fetchToDataStore("Suppliers", "Suppliers.json", false);
+// fetchToDataStore("Suppliers", "Suppliers.json", false);
 
-setTimeout(() => loadGrid("Suppliers"), 5000);
+// setTimeout(() => loadGrid("Suppliers"), 5000);
 
-// const dataRequest = new Request("Customers.json");
-// fetch(dataRequest)
-//     .then(response => {
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! Status: ${response.status}`);
-//         }
-//         return response.json();
-//     })
-//     .then(data => {
-//         dataStore.Customers = data;
-//         loadGrid(data);
-//     });
+const quickIndex = (array, cmpfn = (a, b) => a < b ? -1 : 1) => {
+    const qsi = index => {
+        if (index.length <= 1) { return index };
+        const pivot = array[index[0]];
+        const left = [], same = [index[0]], right = [];
+        for (let i = 1; i < index.length; i++) {
+            const j = index[i];
+            const testResult = cmpfn(array[j], pivot);
+            if (testResult < 0) { left.push(j) }
+            else if (testResult > 0) { right.push(j) }
+            else { same.push(j) };
+        }
+        if (same.length === 1) {
+            return qsi(left).concat(same).concat(qsi(right));
+        }
+        return qsi(left).concat([same]).concat(qsi(right));
+    }
+    const index = Array.from({ length: array.length }, (_, i) => i);
+    return qsi(index);
+}
+
+// console.log(quickIndex([4, 7, 5, 3, 2]));
+// const objList = [
+//     { name: "John", age: 42 },
+//     { name: "Mark", age: 43 },
+//     { name: "John", age: 44 },
+//     { name: "Keith", age: 45 },
+//     { name: "Mark", age: 46 },
+//     { name: "John", age: 41 }
+// ];
+// const objIdx = quickIndex(objList, (a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+// for (let i = 0; i < objIdx.length; i++) {
+//     console.log(i, objIdx[i], objList[objIdx[i]]);
+// }
+
+const listByIdx = (arr, idx, count = 20, start = 0, pos = 0) => {
+    for (let i = 0; i < idx.length; i++) {
+        const keys = idx[i];
+        if (Array.isArray(keys)) {
+            if (pos + keys.length <= start) {
+                pos += keys.length;
+            } else {
+                pos = listByIdx(arr, keys, count, start, pos);
+            }
+        } else {
+            if (pos >= start + count) break;
+            if (pos >= start) console.log(arr[keys]);
+            pos++;
+        };
+    }
+    return pos;
+}
+
+// listByIdx(objList, objIdx);
+// console.log("x");
+// listByIdx(objList, objIdx, 3, 1);
+// console.log("x");
+// listByIdx(objList, objIdx, 2, 3);
