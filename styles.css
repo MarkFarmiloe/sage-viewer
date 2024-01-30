@@ -129,6 +129,16 @@ td {
     text-align: center;
 }
 
+th[x-sort="asc"]::after {
+    content: " " url("assets/asc.png") "2";
+    font-size: 0.75rem;
+}
+
+th[x-sort="desc"]::after {
+    content: " " url("assets/desc.png") "2";
+    font-size: 0.75rem;
+}
+
 tr:nth-child(3n) {
     background-color: rgb(250, 250, 220);
 }
