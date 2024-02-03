@@ -213,16 +213,6 @@ const quickIndex = (array, cmpfn = (a, b) => a < b ? -1 : 1) => {
     return qsi(index);
 }
 
-// Fetch data
-const dataStore = {};
-const dataConfig = {
-    key: "",
-    currentIdx: null,
-    pageNo: 0,
-    pageSize: 25,
-    noOfPages: 0
-};
-
 const layoutCmpFn = (fldInfos, layout) => {
     const sorts = [], asc = [];
     layout.forEach(item => {
@@ -263,7 +253,17 @@ const fetchToDataStore = async (key, path, loadToGrid) => {
     }
 }
 
-fetch(new Request("nav.json"))
+// Fetch data
+const dataStore = {};
+const dataConfig = {
+    key: "",
+    currentIdx: null,
+    pageNo: 0,
+    pageSize: 25,
+    noOfPages: 0
+};
+
+fetch(new Request("server/datasets/ageuk23-24/nav.json"))
     .then(response => {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -274,7 +274,4 @@ fetch(new Request("nav.json"))
         loadNav(data);
     });
 
-fetchToDataStore("Customers", "Customers.json", true);
-// fetchToDataStore("Suppliers", "Suppliers.json", false);
-
-// setTimeout(() => loadGrid("Suppliers"), 5000);
+fetchToDataStore("Customers", "server/datasets/ageuk23-24/Customers.json", true);
