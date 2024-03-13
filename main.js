@@ -37,25 +37,72 @@ const loadNav = data => {
 const buildTHead = () => {
     const toggleSort = (e) => {
         const th = e.target;
-        console.log(th);
-        const xs = th.attributes['x-sort']?.value
-        console.log(xs);
-        th.setAttribute('x-sort', (xs === "asc") ? "desc" : "asc");
+        console.log(e);
+        const asc = !e.shiftKey;
+        const append = e.ctrlKey;
+        const fldNo = th.attributes['x-fldno'].value;
+        if (append) {
+            // first remove it from the currentIdx, if present
+            const newSorts = dataConfig.currentIdx.filter(([fldno, _]) => fldno != fldNo);
+            newSorts.push([fldNo, asc]);
+            dataConfig.currentIdx = newSorts;
+        } else {
+            dataConfig.currentIdx = [[fldNo, asc]];
+        }
+        loadGrid();
     }
     const data = dataStore[dataConfig.key];
     const thead = document.getElementById("thead");
     thead.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
     const tr = document.createElement("tr");
-    data.layout.forEach(fld => {
-        fi = data.fields.find(item => item.Name === fld.Name);
+    dataConfig.currentFields.forEach(fldno => {
+        const fi = data.fields[fldno];
         const th = document.createElement("th");
         th.setAttribute("scope", "col");
-        th.innerText = fi.text;
+        th.setAttribute("x-fldno", fldno);
+        const sortIndex = dataConfig.currentIdx.findIndex(cf => cf[0] == fldno);
+        console.log(fldno, sortIndex);
+        if (sortIndex >= 0) {
+            const imgsrc = "assets/" + (dataConfig.currentIdx[sortIndex][1] ? "asc" : "desc") + ".png";
+            th.innerHTML = fi.text + ' <img src="' + imgsrc + '"/><span>' + (1 + sortIndex) + "</span>";
+        } else {
+            th.innerHTML = fi.text;
+        }
         tr.appendChild(th);
         th.addEventListener("click", toggleSort);
-    })
+    });
     thead.appendChild(tr);
     return;
+}
+
+const sortfn = sorts => {
+    const cmpFn = (a, b) => {
+        for (let i = 0; i < sorts.length; i++) {
+            const [fldno, asc] = sorts[i];
+            if (a[fldno] < b[fldno]) {
+                return asc ? -1 : 1;
+            }
+            if (a[fldno] > b[fldno]) {
+                return asc ? 1 : -1;
+            }
+        }
+        return 0;
+    };
+    return cmpFn;
+}
+
+const fetchIndex = () => {
+    let idxKey = dataConfig.key;
+    dataConfig.currentIdx.forEach(([fldno, asc]) => {
+        idxKey += (asc ? "+" : "-") + fldno;
+    });
+    let index = dataStore[idxKey];
+    if (!index) {
+        const data = dataStore[dataConfig.key];
+        index = quickIndex(data.rows, sortfn(dataConfig.currentIdx));
+        dataStore[idxKey] = index;
+    }
+    return index;
 }
 
 const buildTBody = () => {
@@ -64,7 +111,7 @@ const buildTBody = () => {
         return d.toLocaleDateString();
     }
     const data = dataStore[dataConfig.key];
-    const idx = dataConfig.currentIdx;
+    const idx = fetchIndex();
     const tbody = document.getElementById("tbody");
     tbody.innerHTML = ""; // may need to remove event listeners to avoid memory leak ???
     const showRows = sublistByIdx(data.rows, idx, dataConfig.pageSize, (dataConfig.pageNo - 1) * dataConfig.pageSize);
@@ -116,7 +163,7 @@ const buildTFoot = () => {
     const tfoot = document.getElementById("tfoot");
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = data.fields.length; 
+    td.colSpan = data.fields.length;
     const ul = document.createElement("ul");
     let firstPageNo = Math.max(1, dataConfig.pageNo - 4);
     const lastPageNo = Math.min(firstPageNo + 8, dataConfig.noOfPages);
@@ -178,15 +225,18 @@ const sublistByIdx = (arr, idx, count = 25, start = 0) => {
                 if (pos + keys.length <= start) {
                     pos += keys.length;
                 } else {
-                    pos = populate(keys, pos);
+                    for (let j = 0; j < keys.length; j++) {
+                        if (pos >= start + count) return;
+                        if (pos >= start) sublist.push(arr[keys[j]]);
+                        pos++;                                
+                    }
                 }
             } else {
-                if (pos >= start + count) break;
+                if (pos >= start + count) return;
                 if (pos >= start) sublist.push(arr[keys]);
                 pos++;
             };
         }
-        return pos;
     }
     populate(idx, 0);
     return sublist;
@@ -195,9 +245,9 @@ const sublistByIdx = (arr, idx, count = 25, start = 0) => {
 const quickIndex = (array, cmpfn = (a, b) => a < b ? -1 : 1) => {
     const qsi = index => {
         if (index.length <= 1) { return index };
-        const pivot = array[index[0]];
-        const left = [], same = [index[0]], right = [];
-        for (let i = 1; i < index.length; i++) {
+        const pivot = array[index[Math.floor(index.length / 2)]];
+        const left = [], same = [], right = [];
+        for (let i = 0; i < index.length; i++) {
             const j = index[i];
             const testResult = cmpfn(array[j], pivot);
             if (testResult < 0) { left.push(j) }
@@ -239,31 +289,49 @@ const layoutCmpFn = (fldInfos, layout) => {
     return cmpFn;
 }
 
+const fromLayout = (fldInfos, layout) => {
+    const fieldNos = [], sorts = [];
+    layout.forEach(item => {
+        const i = fldInfos.findIndex(fi => fi.Name === item.Name);
+        fieldNos.push(i);
+        if (item.Sort) {
+            const num = Math.abs(item.Sort) - 1;
+            const asc = Math.sign(item.Sort) === 1;
+            sorts[num] = [i, asc];
+        }
+    });
+    console.log(fieldNos, sorts);
+    return [fieldNos, sorts];
+}
+
 const fetchToDataStore = async (key, path, loadToGrid) => {
     const response = await fetch(path);
     const data = await response.json();
     dataStore[key] = data;
     if (loadToGrid) {
         dataConfig.key = key;
+        [dataConfig.currentFields, dataConfig.currentIdx] = fromLayout(data.fields, data.layout);
         dataConfig.pageNo = 1;
         dataConfig.pageSize = 25;
         dataConfig.noOfPages = 1 + Math.round((data.rows.length - 1) / dataConfig.pageSize);
-        dataConfig.currentIdx = quickIndex(data.rows, layoutCmpFn(data.fields, data.layout))
         loadGrid();
     }
 }
 
 // Fetch data
+const server = "http://127.0.0.1:3000/";
+const dataset = "ageuk23-24/";
 const dataStore = {};
 const dataConfig = {
     key: "",
+    currentFields: [],
     currentIdx: null,
     pageNo: 0,
     pageSize: 25,
     noOfPages: 0
 };
 
-fetch(new Request("server/datasets/ageuk23-24/nav.json"))
+fetch(new Request(server + dataset + "nav"))
     .then(response => {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -274,4 +342,4 @@ fetch(new Request("server/datasets/ageuk23-24/nav.json"))
         loadNav(data);
     });
 
-fetchToDataStore("Customers", "server/datasets/ageuk23-24/Customers.json", true);
+fetchToDataStore("Customers", server + dataset + "Customers", true);
