@@ -14,6 +14,10 @@ body {
     grid-template-columns: 1fr;
 }
 
+main {
+    min-height: 100px;
+}
+
 /* nav bar */
 nav {
     background-color: green;
@@ -129,7 +133,7 @@ td {
     text-align: center;
 }
 
-th[x-sort="asc"]::after {
+/* th[x-sort="asc"]::after {
     content: " " url("assets/asc.png") "2";
     font-size: 0.75rem;
 }
@@ -137,6 +141,10 @@ th[x-sort="asc"]::after {
 th[x-sort="desc"]::after {
     content: " " url("assets/desc.png") "2";
     font-size: 0.75rem;
+} */
+
+th span {
+    font-size: 0.75em;
 }
 
 tr:nth-child(3n) {

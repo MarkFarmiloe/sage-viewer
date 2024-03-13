@@ -825,10 +825,10 @@ const ext2mime = {
     zmm: "application/vnd.handheld-entertainment+xml"
 };
 
-const MAX_ROWS_TO_CACHE = 100000;
+const MAX_ROWS_TO_CACHE = 1024;
 
 const store = {
-    datasetPath: "",
+    datasetPath: "datasets/ageuk23-24/",
     dataStore: {}
 }
 
@@ -962,10 +962,11 @@ const fetchData = (res, base, query) => {
     if (query.sort) {
 
 
+        res.end();
     } else {
-        fs.open(base + ".json")
+        fs.open("datasets/" + base + ".json")
             .then((fh) => {
-                res.setHeader("Content-Type", ext2mime[json]);
+                res.setHeader("Content-Type", ext2mime["json"]);
                 const reader = fh.createReadStream();
                 reader.pipe(res);
             })
@@ -974,13 +975,10 @@ const fetchData = (res, base, query) => {
                 res.end();
             })
     }
-    // if(query.sort)
-
-
-    res.end();
 }
 
 const server = http.createServer((req, res) => {
+    res.setHeader("access-control-allow-origin", "http://127.0.0.1:5500");
     const { headers, method, url } = req;
     const [base, ext, query] = partitionUrl(url);
     // console.log(headers, method, url, base, query);
