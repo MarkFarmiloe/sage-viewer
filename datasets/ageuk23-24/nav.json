@@ -1,0 +1,18 @@
+[
+    {
+        "text": "Customers",
+        "href": "/Customers"
+    },
+    {
+        "text": "Suppliers",
+        "href": "/Suppliers"
+    },
+    {
+        "text": "Nominals",
+        "href": "/Nominals"
+    },
+    {
+        "text": "Banking",
+        "href": "/Banking"
+    }
+]

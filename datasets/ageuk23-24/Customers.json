@@ -991,7 +991,7 @@
   ],
   "layout": [
     { "Name": "ACCOUNT_REF", "Sort": 2 },
-    { "Name": "NAME", "Sort": 1 },
+    { "Name": "NAME", "Sort": -1 },
     { "Name": "CONTACT_NAME" },
     { "Name": "TELEPHONE" },
     { "Name": "E_MAIL" },

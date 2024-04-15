@@ -4,6 +4,7 @@ const path = require('node:path');
 
 const hostname = '127.0.0.1';
 const port = 3000;
+const staticPath = 'static/';
 
 const ext2mime = {
     "123": "application/vnd.lotus-1-2-3",
@@ -745,6 +746,7 @@ const ext2mime = {
     wbxml: "application/vnd.wap.wbxml",
     wcm: "application/vnd.ms-works",
     wdb: "application/vnd.ms-works",
+    webmanifest: "application/json",
     wiz: "application/msword",
     wks: "application/vnd.ms-works",
     wm: "video/x-ms-wm",
@@ -940,7 +942,8 @@ const buildIndexA = (array, cmpfn = (a, b) => a < b ? -1 : 1) => {
 
 const partitionUrl = (url) => {
     const parts = url.split("?");
-    const baseParts = parts[0].split(".");
+    const base = parts[0].substring(1) === "" ? "index.html" : parts[0].substring(1);
+    const baseParts = base.split(".");
     const ext = baseParts.length === 1 ? "" : baseParts[baseParts.length - 1];
     if (parts.length > 1) {
         const query = {};
@@ -949,17 +952,17 @@ const partitionUrl = (url) => {
             const kv = qPart.split("=");
             query[kv[0]] = kv[1];
         });
-        return [parts[0].substring(1), ext, query];
+        return [base, ext, query];
     } else {
-        return [parts[0].substring(1), ext];
+        return [base, ext];
     }
 }
 
 const fetchData = (res, base, query) => {
     query = query || {};
     const count = query.ps ?? 10000;
-    const offset = count * ((query.page ?? 1) - 1);
-    if (query.sort) {
+    const offset = count * ((query.pn ?? 1) - 1);
+    if (query.s) {
 
 
         res.end();
@@ -975,14 +978,32 @@ const fetchData = (res, base, query) => {
                 res.end();
             })
     }
-}
+};
+
+const serveStaticFile = (res, base, ext, query) => {
+    if (query) {
+        res.statusCode = 400;
+        res.end();
+    } else {
+        fs.open(staticPath + base)
+            .then((fh) => {
+                res.setHeader("Content-Type", ext2mime[ext]);
+                const reader = fh.createReadStream();
+                reader.pipe(res);
+            })
+            .catch(err => { // not a simple file server request
+                res.statusCode = 404;
+                res.end();
+            })
+    }
+};
 
 const server = http.createServer((req, res) => {
     res.setHeader("access-control-allow-origin", "http://127.0.0.1:5500");
     const { headers, method, url } = req;
     const [base, ext, query] = partitionUrl(url);
     // console.log(headers, method, url, base, query);
-    console.log(method, url, base, ext, query);
+    // console.log(method, url, base, ext, query);
     req.on('error', err => {
         console.error(err);
         res.statusCode = 400;
@@ -997,23 +1018,13 @@ const server = http.createServer((req, res) => {
         res.statusCode = 400;
         res.end();
     } else if (ext !== "") { // simple file serve request
-        if (query) {
-            res.statusCode = 400;
-            res.end();
-        } else {
-            fs.open(base)
-                .then((fh) => {
-                    res.setHeader("Content-Type", ext2mime[ext]);
-                    const reader = fh.createReadStream();
-                    reader.pipe(res);
-                })
-                .catch(err => { // not a simple file server request
-                    res.statusCode = 400;
-                    res.end();
-                })
-        }
+        serveStaticFile(res, base, ext, query);
     } else {
-        fetchData(res, base, query);
+        if (req.headers.accept === "application/json") {
+            fetchData(res, base, query);
+        } else {
+            serveStaticFile(res, "index.html", "html", "");
+        }
     }
 });
 

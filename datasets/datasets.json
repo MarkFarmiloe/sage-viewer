@@ -1,0 +1,14 @@
+{
+    "fields": [
+        { "Name": "Id", "DataType": "String", "text": "Dataset path"},
+        { "Name": "Dataset", "DataType": "String", "text": "Dataset"}
+    ],
+    "rows": [
+        ["ageuk23-24", "Age Uk BRWF 2023-24"]
+    ],
+    "layout": [
+      { "Name": "Dataset", "Sort": 1 },
+      { "Name": "Id"}
+    ]
+  }
+      
